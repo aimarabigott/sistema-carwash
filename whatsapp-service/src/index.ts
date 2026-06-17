@@ -123,6 +123,7 @@ app.post('/logout/:locationId', async (req, res) => {
   }
 });
 
-app.listen(3001, () => {
-  console.log('Servidor Multi-Tenant WhatsApp ejecutándose en el puerto 3001');
+const PORT = process.env.PORT || 3001;
+app.listen(PORT, () => {
+  console.log(`Servidor Multi-Tenant WhatsApp ejecutándose en el puerto ${PORT}`);
 });
