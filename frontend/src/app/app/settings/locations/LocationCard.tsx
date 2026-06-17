@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Smartphone, RefreshCcw, X, LogOut } from 'lucide-react';
-import { updateWhatsappStatus } from '@/actions/locations';
+import { updateWhatsappStatus } from '@/app/actions/locations';
 
 export default function LocationCard({ location }: { location: any }) {
   const [showModal, setShowModal] = useState(false);
