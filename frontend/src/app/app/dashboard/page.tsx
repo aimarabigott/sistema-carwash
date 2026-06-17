@@ -39,11 +39,16 @@ export default async function DashboardPage(props: { searchParams: Promise<{ sed
     locationIdsToFilter = [searchParams.sede];
   }
 
+  const rangoDias = parseInt(searchParams.rango || "30");
+  const dateFilter = new Date();
+  dateFilter.setDate(dateFilter.getDate() - rangoDias);
+
   // Extraer SÓLO las transacciones de las sedes filtradas (Tenant Isolation)
   const transactions = await prisma.transaction.findMany({
     where: { 
       status: 'COMPLETED',
-      locationId: { in: locationIdsToFilter }
+      locationId: { in: locationIdsToFilter },
+      createdAt: { gte: dateFilter }
     },
     orderBy: { createdAt: 'asc' }
   });
@@ -90,5 +95,5 @@ export default async function DashboardPage(props: { searchParams: Promise<{ sed
     cardTotal
   };
 
-  return <DashboardClient metrics={metrics} chartData={chartData} locations={locations} currentSede={searchParams.sede || "all"} />;
+  return <DashboardClient metrics={metrics} chartData={chartData} locations={locations} currentSede={searchParams.sede || "all"} currentRango={searchParams.rango || "30"} />;
 }

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { MapPin, Users } from "lucide-react";
+import { MapPin, Users, Package } from "lucide-react";
 
 export default function SettingsLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -11,6 +11,10 @@ export default function SettingsLayout({ children }: { children: React.ReactNode
           <Link href="/app/settings/locations" className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-600 hover:text-blue-600 hover:bg-blue-50 font-medium transition-colors">
             <MapPin size={18} />
             <span>Mis Sedes</span>
+          </Link>
+          <Link href="/app/settings/products" className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-600 hover:text-blue-600 hover:bg-blue-50 font-medium transition-colors">
+            <Package size={18} />
+            <span>Productos y Servicios</span>
           </Link>
           <Link href="/app/settings/workers" className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-600 hover:text-blue-600 hover:bg-blue-50 font-medium transition-colors">
             <Users size={18} />

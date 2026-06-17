@@ -1,10 +1,19 @@
 import React from "react";
 import Link from "next/link";
-import { Droplets, LogOut, LayoutDashboard, Calculator, Settings } from "lucide-react";
+import { Droplets, LogOut, LayoutDashboard, Calculator, Settings, ShieldAlert, Users } from "lucide-react";
 import { auth } from "@/auth";
+import prisma from "@/lib/prisma";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const session = await auth();
+  
+  let isSuperAdmin = false;
+  if (session?.user?.id) {
+    const membership = await prisma.membership.findFirst({
+      where: { userId: session.user.id, role: "SUPER_ADMIN" }
+    });
+    if (membership) isSuperAdmin = true;
+  }
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -25,10 +34,20 @@ export default async function AppLayout({ children }: { children: React.ReactNod
               <Calculator size={18} />
               <span>Punto de Venta</span>
             </Link>
+            <Link href="/app/customers" className="flex items-center gap-2 px-3 py-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 font-medium transition-all">
+              <Users size={18} />
+              <span>Clientes</span>
+            </Link>
             <Link href="/app/settings/locations" className="flex items-center gap-2 px-3 py-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 font-medium transition-all">
               <Settings size={18} />
               <span>Configuración</span>
             </Link>
+            {isSuperAdmin && (
+              <Link href="/app/admin" className="flex items-center gap-2 px-3 py-2 rounded-lg text-red-600 hover:text-red-700 hover:bg-red-50 font-bold transition-all ml-4 border border-red-200">
+                <ShieldAlert size={18} />
+                <span>Panel Dios</span>
+              </Link>
+            )}
           </div>
         </div>
 
@@ -45,6 +64,9 @@ export default async function AppLayout({ children }: { children: React.ReactNod
             </Link>
             <Link href="/app/pos" className="p-2 text-slate-600 hover:bg-slate-100 rounded-lg">
               <Calculator size={20} />
+            </Link>
+            <Link href="/app/customers" className="p-2 text-slate-600 hover:bg-slate-100 rounded-lg">
+              <Users size={20} />
             </Link>
             <Link href="/app/settings/locations" className="p-2 text-slate-600 hover:bg-slate-100 rounded-lg">
               <Settings size={20} />

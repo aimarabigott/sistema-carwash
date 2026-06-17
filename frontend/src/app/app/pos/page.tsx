@@ -26,34 +26,25 @@ export default async function POSPage() {
 
   const locationId = membership.locationId;
 
-  // 1. Obtener SÓLO los productos de esta Sede (Tenant Isolation)
-  let products = await prisma.product.findMany({
+  // 1. Obtener SÓLO los productos de esta Sede
+  const products = await prisma.product.findMany({
     where: { locationId }
   });
 
-  // 2. Si la sede no tiene productos, creamos unos de prueba automáticamente
-  if (products.length === 0) {
-    await prisma.product.createMany({
-      data: [
-        { name: "Lavado Básico", category: "LAVADO", price: 20.00, locationId },
-        { name: "Lavado Premium", category: "LAVADO", price: 45.00, locationId },
-        { name: "Encerado Carnauba", category: "SERVICIO_ADICIONAL", price: 30.00, locationId },
-        { name: "Limpieza de Asientos", category: "SERVICIO_ADICIONAL", price: 80.00, locationId },
-        { name: "Aromatizante Pino", category: "PRODUCTO_AUTO", price: 5.00, locationId },
-        { name: "Agua Mineral", category: "SNACK", price: 3.50, locationId },
-      ]
-    });
-    // Volver a consultar
-    products = await prisma.product.findMany({ where: { locationId } });
-  }
+  // 2. Obtener los servicios "En Curso" para esta Sede
+  const activeTransactions = await prisma.transaction.findMany({
+    where: { locationId, status: 'IN_PROGRESS' },
+    include: { items: { include: { product: true } }, worker: true },
+    orderBy: { createdAt: 'desc' }
+  });
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <div className="bg-slate-900 text-white p-4 text-center font-bold text-sm tracking-widest shadow-md flex justify-between items-center">
+    <div className="min-h-screen bg-slate-50 flex flex-col">
+      <div className="bg-slate-900 text-white p-4 text-center font-bold text-sm tracking-widest flex justify-between items-center">
         <span>SISTEMA POS TÁCTIL - CARWASHOS</span>
         <span className="text-blue-400">Sede: {membership.location?.name}</span>
       </div>
-      <PosClient products={products} />
+      <PosClient products={products} activeTransactions={activeTransactions} />
     </div>
   );
 }

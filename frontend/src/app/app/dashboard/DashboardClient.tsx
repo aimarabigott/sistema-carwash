@@ -2,11 +2,18 @@
 
 import React from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
-import { DollarSign, TrendingUp, Users, Car, Wallet, ArrowUpRight, MapPin } from 'lucide-react';
+import { DollarSign, TrendingUp, Users, Car, Wallet, ArrowUpRight, MapPin, Calendar } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
-export default function DashboardClient({ metrics, chartData, locations, currentSede }: { metrics: any, chartData: any[], locations: {id: string, name: string}[], currentSede: string }) {
+export default function DashboardClient({ metrics, chartData, locations, currentSede, currentRango }: { metrics: any, chartData: any[], locations: {id: string, name: string}[], currentSede: string, currentRango: string }) {
   const router = useRouter();
+
+  const handleFilterChange = (key: string, value: string) => {
+    const url = new URL(window.location.href);
+    url.searchParams.set(key, value);
+    router.push(url.toString());
+  };
+
   return (
     <div className="min-h-screen bg-[#0f172a] text-slate-200 font-sans p-8">
       
@@ -16,21 +23,38 @@ export default function DashboardClient({ metrics, chartData, locations, current
           <p className="text-slate-400 mt-1">Resumen financiero y rendimiento en tiempo real.</p>
         </div>
         
-        {locations && locations.length > 0 && (
+        <div className="flex flex-wrap items-center gap-2">
+          {locations && locations.length > 0 && (
+            <div className="flex items-center gap-2 bg-slate-800 border border-slate-700 px-3 py-2 rounded-xl">
+              <MapPin size={18} className="text-slate-400" />
+              <select 
+                className="bg-transparent text-white focus:outline-none text-sm font-medium cursor-pointer"
+                value={currentSede}
+                onChange={(e) => handleFilterChange('sede', e.target.value)}
+              >
+                <option value="all" className="bg-slate-800">Todas las Sedes</option>
+                {locations.map(l => (
+                  <option key={l.id} value={l.id} className="bg-slate-800">{l.name}</option>
+                ))}
+              </select>
+            </div>
+          )}
+
           <div className="flex items-center gap-2 bg-slate-800 border border-slate-700 px-3 py-2 rounded-xl">
-            <MapPin size={18} className="text-slate-400" />
+            <Calendar size={18} className="text-slate-400" />
             <select 
               className="bg-transparent text-white focus:outline-none text-sm font-medium cursor-pointer"
-              value={currentSede}
-              onChange={(e) => router.push(`/app/dashboard?sede=${e.target.value}`)}
+              value={currentRango}
+              onChange={(e) => handleFilterChange('rango', e.target.value)}
             >
-              <option value="all" className="bg-slate-800">Todas las Sedes</option>
-              {locations.map(l => (
-                <option key={l.id} value={l.id} className="bg-slate-800">{l.name}</option>
-              ))}
+              <option value="7" className="bg-slate-800">Últimos 7 días</option>
+              <option value="30" className="bg-slate-800">Últimos 30 días</option>
+              <option value="90" className="bg-slate-800">Últimos 3 meses</option>
+              <option value="180" className="bg-slate-800">Últimos 6 meses</option>
+              <option value="365" className="bg-slate-800">Último año</option>
             </select>
           </div>
-        )}
+        </div>
       </header>
 
       {/* Tarjetas de Métricas (KPIs) */}
