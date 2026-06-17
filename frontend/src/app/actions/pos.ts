@@ -67,8 +67,24 @@ export async function processTransaction(
 
     revalidatePath('/pos'); // Refrescar la pantalla de POS
     
-    // Aquí dispararemos el Webhook hacia WhatsApp (Render) en la Fase 4
-    // fetch('https://tu-render-app.onrender.com/send-ticket', { ... })
+    // Disparar el Webhook hacia el Worker de WhatsApp (No bloqueante)
+    if (phone) {
+      // Construir el texto del ticket
+      const ticketText = `🧾 *TICKET DE LAVADO*\n🚗 Placa: ${plate || 'N/A'}\n\n*Servicios:*\n${items.map(i => `- ${i.name} (S/${i.price})`).join('\n')}\n\n💰 *Total Pagado:* S/ ${total.toFixed(2)}\n💳 *Método:* ${paymentMethod}\n\n¡Gracias por preferirnos! 🌊`;
+      
+      const workerUrl = process.env.WHATSAPP_WORKER_URL || 'http://localhost:3001';
+      
+      // Enviamos la petición y no usamos 'await' para que la pantalla no se congele esperando a WhatsApp
+      fetch(`${workerUrl}/send-ticket`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          phone: phone, 
+          text: ticketText, 
+          apiKey: process.env.WORKER_API_KEY || 'CARWASH_SECRET_123' 
+        })
+      }).catch(err => console.error("Error disparando webhook de WhatsApp:", err));
+    }
 
     return { success: true, transactionId: transaction.id };
 
