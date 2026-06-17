@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { ShoppingCart, Car, Smartphone, Trash2, CreditCard, Banknote, Loader2 } from 'lucide-react';
-import { processTransaction, CartItem } from '../actions/pos';
+import { processTransaction, CartItem } from '@/app/actions/pos';
 
 export default function PosClient({ products }: { products: any[] }) {
   const [cart, setCart] = useState<CartItem[]>([]);
