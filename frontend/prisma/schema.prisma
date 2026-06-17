@@ -1,0 +1,144 @@
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now())
+
+  memberships Membership[]
+}
+
+model Business {
+  id               String   @id @default(uuid())
+  name             String   @default("Mi Franquicia")
+  subscriptionEnd  DateTime?
+  isTrial          Boolean  @default(true)
+  
+  memberships      Membership[]
+  locations        Location[]
+}
+
+model Membership {
+  id         String   @id @default(uuid())
+  userId     String
+  businessId String
+  role       Role     @default(WORKER)
+  
+  // Si es un trabajador, a qué sede y cómo comisiona
+  locationId     String?
+  commissionType CommissionType @default(NONE)
+  commissionValue Float @default(0)
+
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  business   Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  location   Location? @relation(fields: [locationId], references: [id])
+
+  @@unique([userId, businessId])
+}
+
+enum Role {
+  SUPER_ADMIN
+  OWNER
+  MANAGER
+  WORKER
+}
+
+enum CommissionType {
+  PER_CAR
+  PERCENTAGE_TOTAL
+  FIXED_AMOUNT
+  NONE
+}
+
+model Location {
+  id                 String   @id @default(uuid())
+  businessId         String
+  business           Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  name               String
+  
+  whatsappConnected  Boolean  @default(false)
+  whatsappMessage    String?
+
+  memberships        Membership[]
+  products           Product[]
+  transactions       Transaction[]
+  expenses           Expense[]
+}
+
+model Product {
+  id          String   @id @default(uuid())
+  locationId  String
+  location    Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  name        String
+  category    Category
+  price       Float
+  stock       Int?
+  
+  items       TransactionItem[]
+}
+
+enum Category {
+  LAVADO
+  SERVICIO_ADICIONAL
+  PRODUCTO_AUTO
+  SNACK
+}
+
+model Transaction {
+  id                 String   @id @default(uuid())
+  locationId         String
+  location           Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  workerId           String
+  customerPhone      String?
+  customerPlate      String?
+  paymentMethod      PaymentMethod
+  totalAmount        Float
+  status             Status   @default(COMPLETED)
+  cancellationReason String?
+  createdAt          DateTime @default(now())
+
+  items              TransactionItem[]
+}
+
+enum PaymentMethod {
+  CASH
+  YAPE
+  PLIN
+  CARD
+}
+
+enum Status {
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+  PENDING_CANCELLATION
+}
+
+model TransactionItem {
+  id            String   @id @default(uuid())
+  transactionId String
+  transaction   Transaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+  productId     String
+  product       Product @relation(fields: [productId], references: [id])
+  quantity      Int @default(1)
+  priceAtSale   Float
+}
+
+model Expense {
+  id          String   @id @default(uuid())
+  locationId  String
+  location    Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  workerId    String
+  amount      Float
+  concept     String
+  createdAt   DateTime @default(now())
+}
