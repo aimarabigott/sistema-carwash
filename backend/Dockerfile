@@ -1,9 +1,18 @@
-FROM node:18-alpine
+FROM node:20-alpine
+
 WORKDIR /app
+
+# Copiar archivos de dependencias
 COPY package*.json ./
+
+# Instalar dependencias
 RUN npm install
-COPY prisma ./prisma/
-RUN npx prisma generate
+
+# Copiar todo el código del bot
 COPY . .
-EXPOSE 5000
-CMD ["npm", "start"]
+
+# Exponer el puerto
+EXPOSE 3001
+
+# Comando de inicio
+CMD ["node", "src/index.js"]
