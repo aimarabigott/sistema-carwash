@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { Smartphone, RefreshCcw, X, LogOut } from 'lucide-react';
+import { updateWhatsappStatus } from '@/actions/locations';
 
 export default function LocationCard({ location }: { location: any }) {
   const [showModal, setShowModal] = useState(false);
@@ -18,9 +19,11 @@ export default function LocationCard({ location }: { location: any }) {
       const data = await res.json();
       
       if (data.connected) {
-        setIsConnected(true);
-        setShowModal(false);
-        // FIXME: Llamar a Server Action para guardar en DB
+        if (!isConnected) {
+          setIsConnected(true);
+          setShowModal(false);
+          await updateWhatsappStatus(location.id, true);
+        }
       } else {
         if (data.qr) {
           setQrCode(data.qr);
@@ -49,7 +52,7 @@ export default function LocationCard({ location }: { location: any }) {
     try {
       await fetch(`${WHATSAPP_API}/logout/${location.id}`, { method: 'POST' });
       setIsConnected(false);
-      // FIXME: Llamar a Server Action para guardar en DB
+      await updateWhatsappStatus(location.id, false);
     } catch (e) {
       console.error(e);
     }
