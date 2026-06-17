@@ -6,7 +6,7 @@ import { redirect } from 'next/navigation';
 
 export const dynamic = 'force-dynamic';
 
-export default async function DashboardPage(props: { searchParams: Promise<{ sede?: string }> }) {
+export default async function DashboardPage(props: { searchParams: Promise<{ sede?: string; rango?: string }> }) {
   const searchParams = await props.searchParams;
   const session = await auth();
   
