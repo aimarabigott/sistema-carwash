@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { ShoppingCart, CheckCircle, Car, Plus, Minus, Trash2, Clock, Phone, Banknote, CreditCard, Play } from 'lucide-react';
+import { ShoppingCart, CheckCircle, Car, Plus, Minus, Trash2, Clock, Phone, Banknote, CreditCard, Play, Users } from 'lucide-react';
 import { startTransaction, completeTransaction } from '@/app/actions/pos';
 
 export default function PosClient({ products, activeTransactions = [] }: { products: any[], activeTransactions?: any[] }) {
