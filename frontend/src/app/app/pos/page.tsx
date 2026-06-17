@@ -37,7 +37,7 @@ export default async function POSPage(props: { searchParams: Promise<{ sede?: st
   }
 
   // Obtener todas las sedes si es Dueño para el selector
-  let ownerLocations = [];
+  let ownerLocations: { id: string, name: string }[] = [];
   if (membership.role === 'OWNER' || membership.role === 'SUPER_ADMIN') {
     ownerLocations = await prisma.location.findMany({
       where: { businessId: membership.businessId },
