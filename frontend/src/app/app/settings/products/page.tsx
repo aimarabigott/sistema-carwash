@@ -32,6 +32,8 @@ export default async function ProductsSettingsPage() {
 
     if (!name || isNaN(price) || !category) return;
 
+    if (!membership) return;
+
     if (applyToAll) {
       // Create for all locations
       const allLocations = await prisma.location.findMany({
