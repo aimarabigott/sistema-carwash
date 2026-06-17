@@ -33,7 +33,7 @@ export default function PosClient({ products }: { products: any[] }) {
     if (cart.length === 0) return alert('El carrito está vacío');
     setIsProcessing(true);
 
-    const result = await processTransaction(cart, total, plate, phone, paymentMethod);
+    const result = await processTransaction(cart, plate, phone, paymentMethod);
     
     setIsProcessing(false);
     if (result.success) {
