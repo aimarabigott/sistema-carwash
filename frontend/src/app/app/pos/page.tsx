@@ -1,35 +1,59 @@
 import React from 'react';
 import PosClient from './PosClient';
 import prisma from '@/lib/prisma';
+import { auth } from '@/auth';
+import { redirect } from 'next/navigation';
 
 export const dynamic = 'force-dynamic';
 
 export default async function POSPage() {
+  const session = await auth();
   
-  // 1. Verificar si hay un negocio creado (Migración de datos inicial)
-  let location = await prisma.location.findFirst();
-  
-  if (!location) {
-    // Modo "Semilla": Si la base de datos está en blanco (recién desplegada), creamos datos falsos
-    const business = await prisma.business.create({ data: { name: "Carwash Principal" } });
-    location = await prisma.location.create({ data: { name: "Sede Central", businessId: business.id } });
-    
-    // Crear productos de prueba
-    await prisma.product.createMany({
-      data: [
-        { name: "Lavado Básico", category: "LAVADO", price: 20, locationId: location.id },
-        { name: "Lavado Salón", category: "LAVADO", price: 60, locationId: location.id },
-        { name: "Encerado 3M", category: "SERVICIO_ADICIONAL", price: 35, locationId: location.id },
-        { name: "Ambientador Pino", category: "PRODUCTO_AUTO", price: 5, stock: 100, locationId: location.id }
-      ]
-    });
+  if (!session?.user?.id) {
+    redirect('/login');
   }
 
-  // 2. Traer productos reales de la base de datos de esta sede
-  const products = await prisma.product.findMany({
-    where: { locationId: location.id },
-    orderBy: { category: 'asc' }
+  // Obtener la membresía del usuario para saber a qué Negocio y Sede (Location) pertenece
+  const membership = await prisma.membership.findFirst({
+    where: { userId: session.user.id },
+    include: { location: true }
   });
 
-  return <PosClient products={products} />;
+  if (!membership || !membership.locationId) {
+    // Si no tiene sede asignada, no puede usar el POS
+    return <div className="p-10 text-center text-xl text-red-500 font-bold">Error: No tienes una sede asignada para operar el POS.</div>;
+  }
+
+  const locationId = membership.locationId;
+
+  // 1. Obtener SÓLO los productos de esta Sede (Tenant Isolation)
+  let products = await prisma.product.findMany({
+    where: { locationId }
+  });
+
+  // 2. Si la sede no tiene productos, creamos unos de prueba automáticamente
+  if (products.length === 0) {
+    await prisma.product.createMany({
+      data: [
+        { name: "Lavado Básico", category: "LAVADO", price: 20.00, locationId },
+        { name: "Lavado Premium", category: "LAVADO", price: 45.00, locationId },
+        { name: "Encerado Carnauba", category: "SERVICIO_ADICIONAL", price: 30.00, locationId },
+        { name: "Limpieza de Asientos", category: "SERVICIO_ADICIONAL", price: 80.00, locationId },
+        { name: "Aromatizante Pino", category: "PRODUCTO_AUTO", price: 5.00, locationId },
+        { name: "Agua Mineral", category: "SNACK", price: 3.50, locationId },
+      ]
+    });
+    // Volver a consultar
+    products = await prisma.product.findMany({ where: { locationId } });
+  }
+
+  return (
+    <div className="min-h-screen bg-slate-50">
+      <div className="bg-slate-900 text-white p-4 text-center font-bold text-sm tracking-widest shadow-md flex justify-between items-center">
+        <span>SISTEMA POS TÁCTIL - CARWASHOS</span>
+        <span className="text-blue-400">Sede: {membership.location?.name}</span>
+      </div>
+      <PosClient initialProducts={products} />
+    </div>
+  );
 }

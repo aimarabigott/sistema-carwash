@@ -3,8 +3,8 @@
 import prisma from '@/lib/prisma';
 import { PaymentMethod } from '@prisma/client';
 import { revalidatePath } from 'next/cache';
+import { auth } from '@/auth';
 
-// Tipos requeridos
 export interface CartItem {
   id: string;
   productId: string;
@@ -13,68 +13,58 @@ export interface CartItem {
   quantity: number;
 }
 
-export async function processTransaction(
-  items: CartItem[],
-  total: number,
-  plate: string,
-  phone: string,
-  paymentMethod: PaymentMethod
-) {
+export async function processTransaction(items: CartItem[], plate: string, phone: string, paymentMethod: PaymentMethod) {
   try {
-    // 1. Obtener la sucursal actual (Hardcodeada por ahora hasta implementar el Login)
-    const location = await prisma.location.findFirst();
-    if (!location) throw new Error("No hay sucursales registradas.");
+    const session = await auth();
+    if (!session?.user?.id) return { error: 'No autorizado' };
 
-    // 2. Transacción Atómica: Si algo falla, se revierte todo (Prisma Transaction)
-    const transaction = await prisma.$transaction(async (tx) => {
-      
-      // A. Crear la venta (Ticket principal)
-      const sale = await tx.transaction.create({
-        data: {
-          locationId: location.id,
-          workerId: "temporal-worker-id", // Hardcodeado hasta tener Login
-          customerPlate: plate || null,
-          customerPhone: phone || null,
-          paymentMethod,
-          totalAmount: total,
-          status: 'COMPLETED'
-        }
-      });
+    // Buscar a qué sede pertenece el trabajador actual
+    const membership = await prisma.membership.findFirst({
+      where: { userId: session.user.id }
+    });
 
-      // B. Insertar todos los items del carrito y descontar inventario si aplica
-      for (const item of items) {
-        await tx.transactionItem.create({
-          data: {
-            transactionId: sale.id,
+    if (!membership || !membership.locationId) {
+      return { error: 'No tienes una sede asignada para registrar ventas.' };
+    }
+
+    const locationId = membership.locationId;
+    const workerId = session.user.id;
+
+    if (!items || items.length === 0) {
+      return { error: 'El carrito está vacío' };
+    }
+
+    const total = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+
+    // Creación Atómica en Prisma (Transacción DB) SÓLO en la sede del trabajador
+    const transaction = await prisma.transaction.create({
+      data: {
+        locationId,
+        workerId,
+        customerPlate: plate || null,
+        customerPhone: phone || null,
+        paymentMethod,
+        totalAmount: total,
+        status: 'COMPLETED',
+        items: {
+          create: items.map(item => ({
             productId: item.productId,
             quantity: item.quantity,
             priceAtSale: item.price
-          }
-        });
-
-        // Opcional: Descontar stock si es un producto físico (ej. Ambientador, Snack)
-        const product = await tx.product.findUnique({ where: { id: item.productId } });
-        if (product && product.stock !== null && product.stock >= item.quantity) {
-          await tx.product.update({
-            where: { id: item.productId },
-            data: { stock: product.stock - item.quantity }
-          });
+          }))
         }
       }
-
-      return sale;
     });
 
-    revalidatePath('/pos'); // Refrescar la pantalla de POS
+    revalidatePath('/app/pos');
+    revalidatePath('/app/dashboard');
     
-    // Disparar el Webhook hacia el Worker de WhatsApp (No bloqueante)
+    // Disparar Webhook hacia el Worker de WhatsApp
     if (phone) {
-      // Construir el texto del ticket
       const ticketText = `🧾 *TICKET DE LAVADO*\n🚗 Placa: ${plate || 'N/A'}\n\n*Servicios:*\n${items.map(i => `- ${i.name} (S/${i.price})`).join('\n')}\n\n💰 *Total Pagado:* S/ ${total.toFixed(2)}\n💳 *Método:* ${paymentMethod}\n\n¡Gracias por preferirnos! 🌊`;
       
       const workerUrl = process.env.WHATSAPP_WORKER_URL || 'http://localhost:3001';
       
-      // Enviamos la petición y no usamos 'await' para que la pantalla no se congele esperando a WhatsApp
       fetch(`${workerUrl}/send-ticket`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -83,13 +73,13 @@ export async function processTransaction(
           text: ticketText, 
           apiKey: process.env.WORKER_API_KEY || 'CARWASH_SECRET_123' 
         })
-      }).catch(err => console.error("Error disparando webhook de WhatsApp:", err));
+      }).catch(err => console.error("Error Webhook WhatsApp:", err));
     }
 
     return { success: true, transactionId: transaction.id };
 
-  } catch (error: any) {
-    console.error("Error procesando pago:", error);
-    return { success: false, error: error.message || "Error desconocido" };
+  } catch (error) {
+    console.error("Error processing transaction:", error);
+    return { error: 'Hubo un error al procesar el pago' };
   }
 }
