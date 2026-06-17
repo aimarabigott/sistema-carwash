@@ -53,7 +53,7 @@ export default async function POSPage() {
         <span>SISTEMA POS TÁCTIL - CARWASHOS</span>
         <span className="text-blue-400">Sede: {membership.location?.name}</span>
       </div>
-      <PosClient initialProducts={products} />
+      <PosClient products={products} />
     </div>
   );
 }
