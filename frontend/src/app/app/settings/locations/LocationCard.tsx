@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Smartphone, RefreshCcw, X, LogOut } from 'lucide-react';
 import { updateWhatsappStatus } from '@/actions/locations';
 
@@ -12,6 +12,27 @@ export default function LocationCard({ location }: { location: any }) {
 
   // NOTA: Para producción, esta URL debe venir de las variables de entorno
   const WHATSAPP_API = process.env.NEXT_PUBLIC_WHATSAPP_URL || 'http://localhost:3001';
+
+  useEffect(() => {
+    const checkRealStatus = async () => {
+      try {
+        const res = await fetch(`${WHATSAPP_API}/qr/${location.id}`);
+        const data = await res.json();
+        
+        if (data.connected && !isConnected) {
+          setIsConnected(true);
+          await updateWhatsappStatus(location.id, true);
+        } else if (!data.connected && isConnected) {
+          setIsConnected(false);
+          await updateWhatsappStatus(location.id, false);
+        }
+      } catch (e) {
+        // Ignorar si el servidor está apagado o en reposo
+      }
+    };
+    
+    checkRealStatus();
+  }, [location.id, isConnected, WHATSAPP_API]);
 
   const fetchQR = async () => {
     try {
