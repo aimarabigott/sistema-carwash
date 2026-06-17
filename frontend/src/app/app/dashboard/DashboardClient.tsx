@@ -115,7 +115,7 @@ export default function DashboardClient({ metrics, chartData, locations, current
             </button>
           </div>
           <div className="h-72 w-full">
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height="100%" minHeight={200}>
               <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                 <defs>
                   <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
@@ -171,7 +171,7 @@ export default function DashboardClient({ metrics, chartData, locations, current
           
           <div className="mt-6 pt-6 border-t border-slate-100">
             <div className="h-32">
-              <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer width="100%" height="100%" minHeight={100}>
                 <BarChart data={[
                   { name: 'Efectivo', amount: metrics.cashTotal, fill: '#34d399' },
                   { name: 'Yape', amount: metrics.yapeTotal, fill: '#a855f7' },

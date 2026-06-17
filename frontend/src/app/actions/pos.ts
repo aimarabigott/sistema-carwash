@@ -5,6 +5,20 @@ import { PaymentMethod } from '@prisma/client';
 import { revalidatePath } from 'next/cache';
 import { auth } from '@/auth';
 
+async function sendWhatsAppMessage(locationId: string, phone: string, message: string) {
+  const WHATSAPP_API = process.env.NEXT_PUBLIC_WHATSAPP_URL;
+  if (!WHATSAPP_API || !phone) return;
+  try {
+    await fetch(`${WHATSAPP_API}/send/${locationId}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ phone, message })
+    });
+  } catch (e) {
+    console.error('Error enviando WhatsApp:', e);
+  }
+}
+
 export interface CartItem {
   id: string;
   productId: string;
@@ -45,6 +59,14 @@ export async function processTransaction(items: CartItem[], plate: string, phone
         }
       }
     });
+
+    if (phone) {
+      await sendWhatsAppMessage(
+        membership.locationId, 
+        phone, 
+        `🚗 Hola ${customerName || ''}, tu lavado por S/${total.toFixed(2)} (Placa: ${plate || 'S/N'}) se ha registrado exitosamente. ¡Gracias por preferirnos!`
+      );
+    }
 
     revalidatePath('/app/pos');
     revalidatePath('/app/dashboard');
@@ -87,6 +109,14 @@ export async function startTransaction(items: CartItem[], plate: string, phone: 
       }
     });
 
+    if (phone) {
+      await sendWhatsAppMessage(
+        membership.locationId, 
+        phone, 
+        `🚗 Hola ${customerName || ''}, hemos recibido tu vehículo (Placa: ${plate || 'S/N'}). Te avisaremos automáticamente por aquí cuando el lavado esté finalizado. ¡Gracias!`
+      );
+    }
+
     revalidatePath('/app/pos');
     return { success: true };
   } catch (error) {
@@ -106,6 +136,15 @@ export async function completeTransaction(transactionId: string, paymentMethod: 
         paymentMethod: paymentMethod
       }
     });
+
+    const transaction = await prisma.transaction.findUnique({ where: { id: transactionId } });
+    if (transaction && transaction.customerPhone) {
+      await sendWhatsAppMessage(
+        transaction.locationId,
+        transaction.customerPhone,
+        `✨ ¡Tu vehículo (Placa: ${transaction.customerPlate || 'S/N'}) ya está listo y reluciente! Total cobrado: S/${transaction.totalAmount.toFixed(2)}. ¡Te esperamos pronto!`
+      );
+    }
 
     revalidatePath('/app/pos');
     revalidatePath('/app/dashboard');
