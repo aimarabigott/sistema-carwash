@@ -13,7 +13,7 @@ export interface CartItem {
   quantity: number;
 }
 
-export async function processTransaction(items: CartItem[], plate: string, phone: string, paymentMethod: PaymentMethod) {
+export async function processTransaction(items: CartItem[], plate: string, phone: string, paymentMethod: PaymentMethod, customerName?: string, vehicleType?: string) {
   try {
     const session = await auth();
     if (!session?.user?.id) return { error: 'No autorizado' };
@@ -31,6 +31,8 @@ export async function processTransaction(items: CartItem[], plate: string, phone
         workerId: session.user.id,
         customerPlate: plate || null,
         customerPhone: phone || null,
+        customerName: customerName || null,
+        vehicleType: vehicleType || null,
         paymentMethod,
         totalAmount: total,
         status: 'COMPLETED',
@@ -52,7 +54,7 @@ export async function processTransaction(items: CartItem[], plate: string, phone
   }
 }
 
-export async function startTransaction(items: CartItem[], plate: string, phone: string) {
+export async function startTransaction(items: CartItem[], plate: string, phone: string, customerName?: string, vehicleType?: string) {
   try {
     const session = await auth();
     if (!session?.user?.id) return { error: 'No autorizado' };
@@ -70,6 +72,8 @@ export async function startTransaction(items: CartItem[], plate: string, phone: 
         workerId: session.user.id,
         customerPlate: plate || null,
         customerPhone: phone || null,
+        customerName: customerName || null,
+        vehicleType: vehicleType || null,
         paymentMethod: 'CASH', // Dummy payment, will change on complete
         totalAmount: total,
         status: 'IN_PROGRESS',

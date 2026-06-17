@@ -2,6 +2,7 @@ import React from "react";
 import prisma from "@/lib/prisma";
 import { auth } from "@/auth";
 import { revalidatePath } from "next/cache";
+import LocationCard from "./LocationCard";
 
 export const dynamic = 'force-dynamic';
 
@@ -47,10 +48,7 @@ export default async function LocationsSettingsPage() {
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
         {locations.map(loc => (
-          <div key={loc.id} className="p-4 border border-slate-200 rounded-xl bg-slate-50">
-            <h4 className="font-bold text-slate-800">{loc.name}</h4>
-            <p className="text-sm text-slate-500 mt-1">ID: {loc.id.split('-')[0]}</p>
-          </div>
+          <LocationCard key={loc.id} location={loc} />
         ))}
       </div>
 

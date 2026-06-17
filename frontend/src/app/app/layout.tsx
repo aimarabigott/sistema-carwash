@@ -1,6 +1,6 @@
 import React from "react";
 import Link from "next/link";
-import { Droplets, LogOut, LayoutDashboard, Calculator, Settings, ShieldAlert, Users } from "lucide-react";
+import { Droplets, LogOut, LayoutDashboard, Calculator, Settings, ShieldAlert, Users, Play } from "lucide-react";
 import { auth } from "@/auth";
 import prisma from "@/lib/prisma";
 
@@ -29,6 +29,10 @@ export default async function AppLayout({ children }: { children: React.ReactNod
             <Link href="/app/dashboard" className="flex items-center gap-2 px-3 py-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 font-medium transition-all">
               <LayoutDashboard size={18} />
               <span>Panel Dueño</span>
+            </Link>
+            <Link href="/app/live" className="flex items-center gap-2 px-3 py-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 font-medium transition-all">
+              <Play size={18} />
+              <span>En Vivo</span>
             </Link>
             <Link href="/app/pos" className="flex items-center gap-2 px-3 py-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 font-medium transition-all">
               <Calculator size={18} />

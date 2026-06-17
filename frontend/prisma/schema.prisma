@@ -143,8 +143,10 @@ model Transaction {
   location           Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
   workerId           String
   worker             User     @relation(fields: [workerId], references: [id])
+  customerName       String?
   customerPhone      String?
   customerPlate      String?
+  vehicleType        String?
   paymentMethod      PaymentMethod
   totalAmount        Float
   status             Status   @default(COMPLETED)

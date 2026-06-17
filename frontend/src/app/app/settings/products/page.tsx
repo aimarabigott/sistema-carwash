@@ -28,12 +28,34 @@ export default async function ProductsSettingsPage() {
     const price = parseFloat(formData.get('price') as string);
     const category = formData.get('category') as any;
     const locationId = formData.get('locationId') as string;
+    const applyToAll = formData.get('applyToAll') === 'on';
 
-    if (!name || isNaN(price) || !category || !locationId) return;
+    if (!name || isNaN(price) || !category) return;
 
-    await prisma.product.create({
-      data: { name, price, category, locationId }
-    });
+    if (applyToAll) {
+      // Create for all locations
+      const allLocations = await prisma.location.findMany({
+        where: { businessId: membership.businessId },
+        select: { id: true }
+      });
+      
+      const productsData = allLocations.map(loc => ({
+        name,
+        price,
+        category,
+        locationId: loc.id
+      }));
+
+      await prisma.product.createMany({
+        data: productsData
+      });
+    } else {
+      if (!locationId) return;
+      await prisma.product.create({
+        data: { name, price, category, locationId }
+      });
+    }
+    
     revalidatePath('/app/settings/products');
   }
 
@@ -78,11 +100,11 @@ export default async function ProductsSettingsPage() {
         <form action={createProduct} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 max-w-4xl">
           <div>
             <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Nombre</label>
-            <input type="text" name="name" required className="w-full px-4 py-2 border border-slate-300 rounded-lg" placeholder="Ej: Lavado VIP" />
+            <input type="text" name="name" required className="w-full px-4 py-2 border border-slate-300 rounded-lg text-slate-900 font-medium" placeholder="Ej: Lavado VIP" />
           </div>
           <div>
             <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Categoría</label>
-            <select name="category" required className="w-full px-4 py-2 border border-slate-300 rounded-lg bg-white">
+            <select name="category" required className="w-full px-4 py-2 border border-slate-300 rounded-lg bg-white text-slate-900 font-medium">
               <option value="LAVADO">Lavado</option>
               <option value="SERVICIO_ADICIONAL">Servicio Adicional</option>
               <option value="PRODUCTO_AUTO">Producto de Auto</option>
@@ -91,16 +113,20 @@ export default async function ProductsSettingsPage() {
           </div>
           <div>
             <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Precio (S/)</label>
-            <input type="number" step="0.10" name="price" required className="w-full px-4 py-2 border border-slate-300 rounded-lg" placeholder="25.00" />
+            <input type="number" step="0.10" name="price" required className="w-full px-4 py-2 border border-slate-300 rounded-lg text-slate-900 font-medium" placeholder="25.00" />
           </div>
           <div>
             <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Asignar a Sede</label>
-            <select name="locationId" required className="w-full px-4 py-2 border border-slate-300 rounded-lg bg-white">
+            <select name="locationId" className="w-full px-4 py-2 border border-slate-300 rounded-lg bg-white text-slate-900 font-medium mb-2">
               <option value="">Selecciona una sede...</option>
               {locations.map(loc => (
                 <option key={loc.id} value={loc.id}>{loc.name}</option>
               ))}
             </select>
+            <label className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer">
+              <input type="checkbox" name="applyToAll" className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500" />
+              Aplicar a todas mis sedes
+            </label>
           </div>
           <div className="lg:col-span-4 mt-2">
             <button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-colors">
