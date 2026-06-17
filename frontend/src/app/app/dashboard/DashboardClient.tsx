@@ -2,20 +2,35 @@
 
 import React from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
-import { DollarSign, TrendingUp, Users, Car, Wallet, ArrowUpRight } from 'lucide-react';
+import { DollarSign, TrendingUp, Users, Car, Wallet, ArrowUpRight, MapPin } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
-export default function DashboardClient({ metrics, chartData }: { metrics: any, chartData: any[] }) {
+export default function DashboardClient({ metrics, chartData, locations, currentSede }: { metrics: any, chartData: any[], locations: {id: string, name: string}[], currentSede: string }) {
+  const router = useRouter();
   return (
     <div className="min-h-screen bg-[#0f172a] text-slate-200 font-sans p-8">
       
-      <header className="mb-10 flex justify-between items-end">
+      <header className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-4xl font-extrabold text-white tracking-tight mb-2">Panel de Control</h1>
-          <p className="text-slate-400">Resumen financiero y rendimiento en tiempo real.</p>
+          <h1 className="text-3xl font-extrabold tracking-tight">Panel de Control</h1>
+          <p className="text-slate-400 mt-1">Resumen financiero y rendimiento en tiempo real.</p>
         </div>
-        <button className="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2 rounded-xl font-medium transition-colors shadow-[0_0_15px_rgba(37,99,235,0.5)]">
-          Descargar Reporte
-        </button>
+        
+        {locations && locations.length > 0 && (
+          <div className="flex items-center gap-2 bg-slate-800 border border-slate-700 px-3 py-2 rounded-xl">
+            <MapPin size={18} className="text-slate-400" />
+            <select 
+              className="bg-transparent text-white focus:outline-none text-sm font-medium cursor-pointer"
+              value={currentSede}
+              onChange={(e) => router.push(`/app/dashboard?sede=${e.target.value}`)}
+            >
+              <option value="all" className="bg-slate-800">Todas las Sedes</option>
+              {locations.map(l => (
+                <option key={l.id} value={l.id} className="bg-slate-800">{l.name}</option>
+              ))}
+            </select>
+          </div>
+        )}
       </header>
 
       {/* Tarjetas de Métricas (KPIs) */}

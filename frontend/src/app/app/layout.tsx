@@ -1,6 +1,6 @@
 import React from "react";
 import Link from "next/link";
-import { Droplets, LogOut, LayoutDashboard, Calculator } from "lucide-react";
+import { Droplets, LogOut, LayoutDashboard, Calculator, Settings } from "lucide-react";
 import { auth } from "@/auth";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
@@ -25,6 +25,10 @@ export default async function AppLayout({ children }: { children: React.ReactNod
               <Calculator size={18} />
               <span>Punto de Venta</span>
             </Link>
+            <Link href="/app/settings/locations" className="flex items-center gap-2 px-3 py-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 font-medium transition-all">
+              <Settings size={18} />
+              <span>Configuración</span>
+            </Link>
           </div>
         </div>
 
@@ -41,6 +45,9 @@ export default async function AppLayout({ children }: { children: React.ReactNod
             </Link>
             <Link href="/app/pos" className="p-2 text-slate-600 hover:bg-slate-100 rounded-lg">
               <Calculator size={20} />
+            </Link>
+            <Link href="/app/settings/locations" className="p-2 text-slate-600 hover:bg-slate-100 rounded-lg">
+              <Settings size={20} />
             </Link>
           </div>
 

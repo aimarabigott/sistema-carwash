@@ -6,7 +6,8 @@ import { redirect } from 'next/navigation';
 
 export const dynamic = 'force-dynamic';
 
-export default async function DashboardPage() {
+export default async function DashboardPage(props: { searchParams: Promise<{ sede?: string }> }) {
+  const searchParams = await props.searchParams;
   const session = await auth();
   
   if (!session?.user?.id) {
@@ -22,19 +23,27 @@ export default async function DashboardPage() {
     return <div className="p-10 text-center text-xl text-red-500 font-bold">Error: No tienes una empresa asignada.</div>;
   }
 
-  // Obtener todas las sedes de este negocio para filtrar transacciones globales del negocio
+  // RBAC: Bloquear a los trabajadores (Lavadores)
+  if (membership.role === "WORKER") {
+    redirect('/app/pos');
+  }
+
+  // Obtener todas las sedes de este negocio
   const locations = await prisma.location.findMany({
     where: { businessId: membership.businessId },
-    select: { id: true }
+    select: { id: true, name: true }
   });
   
-  const locationIds = locations.map(l => l.id);
+  let locationIdsToFilter = locations.map(l => l.id);
+  if (searchParams.sede && searchParams.sede !== "all") {
+    locationIdsToFilter = [searchParams.sede];
+  }
 
-  // Extraer SÓLO las transacciones de las sedes de ESTE cliente (Tenant Isolation)
+  // Extraer SÓLO las transacciones de las sedes filtradas (Tenant Isolation)
   const transactions = await prisma.transaction.findMany({
     where: { 
       status: 'COMPLETED',
-      locationId: { in: locationIds }
+      locationId: { in: locationIdsToFilter }
     },
     orderBy: { createdAt: 'asc' }
   });
@@ -52,21 +61,24 @@ export default async function DashboardPage() {
   const cardTotal = transactions.filter(t => t.paymentMethod === 'CARD').reduce((sum, tx) => sum + tx.totalAmount, 0);
 
   let chartData: {date: string, revenue: number}[] = [];
+  const grouped: Record<string, number> = {};
   
-  if (transactions.length < 5) {
-    const days = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
-    chartData = days.map((day, i) => ({
-      date: day,
-      revenue: Math.floor(Math.random() * 300) + 100 + (i === 6 ? totalRevenue : 0)
-    }));
-  } else {
-    const grouped: Record<string, number> = {};
-    transactions.forEach(tx => {
-      const dateStr = tx.createdAt.toLocaleDateString('es-ES', { weekday: 'short' });
-      grouped[dateStr] = (grouped[dateStr] || 0) + tx.totalAmount;
-    });
-    chartData = Object.keys(grouped).map(k => ({ date: k, revenue: grouped[k] }));
+  // Rellenar últimos 7 días con cero
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    const dateStr = d.toLocaleDateString('es-ES', { weekday: 'short' });
+    grouped[dateStr] = 0;
   }
+
+  transactions.forEach(tx => {
+    const dateStr = tx.createdAt.toLocaleDateString('es-ES', { weekday: 'short' });
+    if (grouped[dateStr] !== undefined) {
+      grouped[dateStr] += tx.totalAmount;
+    }
+  });
+  
+  chartData = Object.keys(grouped).map(k => ({ date: k, revenue: grouped[k] }));
 
   const metrics = {
     totalRevenue,
@@ -78,5 +90,5 @@ export default async function DashboardPage() {
     cardTotal
   };
 
-  return <DashboardClient metrics={metrics} chartData={chartData} />;
+  return <DashboardClient metrics={metrics} chartData={chartData} locations={locations} currentSede={searchParams.sede || "all"} />;
 }
