@@ -64,7 +64,7 @@ export default function RegisterPage() {
               type="text" 
               name="name"
               required 
-              className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+              className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
               placeholder="Juan Pérez"
             />
           </div>
@@ -76,7 +76,7 @@ export default function RegisterPage() {
                 type="text" 
                 name="businessName"
                 required 
-                className="w-full pl-10 pr-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                className="w-full pl-10 pr-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
                 placeholder="Lavados El Rápido"
               />
             </div>
@@ -87,7 +87,7 @@ export default function RegisterPage() {
               type="email" 
               name="email"
               required 
-              className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+              className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
               placeholder="tu@correo.com"
             />
           </div>
@@ -97,7 +97,7 @@ export default function RegisterPage() {
               type="password" 
               name="password"
               required 
-              className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+              className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
               placeholder="••••••••"
             />
           </div>
