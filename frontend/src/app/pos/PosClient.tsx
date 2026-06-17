@@ -116,7 +116,7 @@ export default function PosClient({ products }: { products: any[] }) {
             <input 
               value={plate} onChange={e => setPlate(e.target.value)}
               type="text" placeholder="Placa del Auto (Ej. ABC-123)" 
-              className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono uppercase transition-all" 
+              className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono uppercase transition-all" 
             />
           </div>
           <div className="relative">
@@ -124,7 +124,7 @@ export default function PosClient({ products }: { products: any[] }) {
             <input 
               value={phone} onChange={e => setPhone(e.target.value)}
               type="tel" placeholder="Celular (WhatsApp)" 
-              className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 transition-all" 
+              className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-green-500 transition-all" 
             />
           </div>
         </div>
