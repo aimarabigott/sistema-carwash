@@ -58,38 +58,6 @@ export default function DashboardClient({ metrics, chartData, locations, current
       </header>
 
       {/* Tarjetas de Métricas (KPIs) */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
-        <div className="bg-[#1e293b] border border-slate-700/50 p-6 rounded-2xl shadow-xl relative overflow-hidden group">
-          <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-            <DollarSign size={64} />
-          </div>
-          <p className="text-sm font-medium text-slate-400 mb-1">Ingresos Totales</p>
-          <h3 className="text-3xl font-bold text-white mb-4">S/ {metrics.totalRevenue.toFixed(2)}</h3>
-          <div className="flex items-center text-emerald-400 text-sm font-medium">
-            <ArrowUpRight size={16} className="mr-1" />
-            <span>+12.5% vs semana pasada</span>
-          </div>
-        </div>
-
-        <div className="bg-[#1e293b] border border-slate-700/50 p-6 rounded-2xl shadow-xl relative overflow-hidden group">
-          <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-            <Car size={64} />
-          </div>
-          <p className="text-sm font-medium text-slate-400 mb-1">Lavados Realizados</p>
-          <h3 className="text-3xl font-bold text-white mb-4">{metrics.totalWashes}</h3>
-          <div className="flex items-center text-emerald-400 text-sm font-medium">
-            <ArrowUpRight size={16} className="mr-1" />
-            <span>+5 autos nuevos</span>
-          </div>
-        </div>
-
-        <div className="bg-[#1e293b] border border-slate-700/50 p-6 rounded-2xl shadow-xl relative overflow-hidden group">
-          <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-            <Wallet size={64} />
-          </div>
-          <p className="text-sm font-medium text-slate-400 mb-1">Ticket Promedio</p>
-          <h3 className="text-3xl font-bold text-white mb-4">S/ {metrics.averageTicket.toFixed(2)}</h3>
-          <div className="flex items-center text-emerald-400 text-sm font-medium">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between relative overflow-hidden group">
           <div className="absolute top-0 right-0 w-24 h-24 bg-blue-500/10 rounded-full blur-2xl -mr-10 -mt-10 group-hover:bg-blue-500/20 transition-all"></div>
