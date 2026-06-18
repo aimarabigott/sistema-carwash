@@ -189,3 +189,12 @@ model Expense {
   concept     String
   createdAt   DateTime @default(now())
 }
+
+model WhatsappAuth {
+  id         String   @id @default(cuid())
+  locationId String
+  key        String   
+  value      String   @db.Text
+  
+  @@unique([locationId, key])
+}

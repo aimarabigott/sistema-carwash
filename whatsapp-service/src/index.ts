@@ -1,27 +1,28 @@
 import express from 'express';
 import cors from 'cors';
-import { makeWASocket, useMultiFileAuthState, DisconnectReason } from '@whiskeysockets/baileys';
+import { makeWASocket, DisconnectReason } from '@whiskeysockets/baileys';
 import pino from 'pino';
 import QRCode from 'qrcode';
-import fs from 'fs';
-import path from 'path';
+import { Pool } from 'pg';
+import { usePostgresAuthState } from './usePostgresAuthState';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-const SESSIONS_DIR = path.join(__dirname, '..', 'sessions');
-if (!fs.existsSync(SESSIONS_DIR)) {
-  fs.mkdirSync(SESSIONS_DIR);
-}
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL
+});
 
 // Mapa de sesiones en memoria
 const activeSessions = new Map<string, any>();
 const qrCodes = new Map<string, string>();
 
 async function connectToWhatsApp(locationId: string) {
-  const sessionPath = path.join(SESSIONS_DIR, locationId);
-  const { state, saveCreds } = await useMultiFileAuthState(sessionPath);
+  const { state, saveCreds } = await usePostgresAuthState(locationId, pool);
 
   const sock = makeWASocket({
     auth: state,
@@ -44,32 +45,36 @@ async function connectToWhatsApp(locationId: string) {
         connectToWhatsApp(locationId);
       } else {
         // Logged out
-        console.log(`Sede ${locationId} DESCONECTADA (Logged Out). Eliminando sesión...`);
+        console.log(`Sede ${locationId} DESCONECTADA (Logged Out). Eliminando sesión de BD...`);
         activeSessions.delete(locationId);
         qrCodes.delete(locationId);
-        fs.rmSync(sessionPath, { recursive: true, force: true });
         
-        // TODO: Enviar webhook al frontend Next.js para actualizar la base de datos a whatsappConnected: false
+        await pool.query(`DELETE FROM "WhatsappAuth" WHERE "locationId" = $1`, [locationId]);
       }
     } else if (connection === 'open') {
-      console.log(`Sede ${locationId} CONECTADA exitosamente!`);
+      console.log(`Sede ${locationId} CONECTADA exitosamente desde BD!`);
       activeSessions.set(locationId, sock);
       qrCodes.delete(locationId);
-      
-      // TODO: Enviar webhook al frontend Next.js para actualizar la base de datos a whatsappConnected: true
     }
   });
 
   sock.ev.on('creds.update', saveCreds);
 }
 
-// Iniciar sesiones guardadas al arrancar
-fs.readdirSync(SESSIONS_DIR).forEach(locationId => {
-  if (fs.statSync(path.join(SESSIONS_DIR, locationId)).isDirectory()) {
-    console.log(`Iniciando sesión guardada para sede: ${locationId}`);
-    connectToWhatsApp(locationId);
+// Iniciar sesiones guardadas al arrancar buscando en Postgres
+async function startup() {
+  try {
+    const res = await pool.query(`SELECT DISTINCT "locationId" FROM "WhatsappAuth"`);
+    const locations = res.rows.map(r => r.locationId);
+    for (const locationId of locations) {
+      console.log(`Re-iniciando sesión guardada desde BD para sede: ${locationId}`);
+      connectToWhatsApp(locationId);
+    }
+  } catch(e) {
+    console.error("Error arrancando sesiones de BD:", e);
   }
-});
+}
+startup();
 
 // Endpoint para pedir/ver QR
 app.get('/qr/:locationId', async (req, res) => {
@@ -119,7 +124,9 @@ app.post('/logout/:locationId', async (req, res) => {
     sock.logout();
     res.json({ success: true, message: 'Sesión cerrada exitosamente.' });
   } else {
-    res.json({ success: false, message: 'No había sesión activa.' });
+    // Si no está cargada en memoria, igual la borramos de la BD
+    await pool.query(`DELETE FROM "WhatsappAuth" WHERE "locationId" = $1`, [locationId]);
+    res.json({ success: true, message: 'Sesión borrada de la BD exitosamente.' });
   }
 });
 
