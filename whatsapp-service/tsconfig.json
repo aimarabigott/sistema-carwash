@@ -3,6 +3,7 @@
     "module": "commonjs",
     "target": "esnext",
     "outDir": "./build",
+    "rootDir": "./src",
     "sourceMap": true,
     "strict": false,
     "esModuleInterop": true,
