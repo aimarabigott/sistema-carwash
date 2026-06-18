@@ -58,13 +58,14 @@ export default function PosClient({
     const uppercasePlate = val.toUpperCase();
     setPlate(uppercasePlate);
 
-    if (customerMode === 'FRECUENTE') {
-      const found = frequentCustomers.find(c => c.customerPlate === uppercasePlate);
-      if (found) {
-        setCustomerName(found.customerName || '');
-        setPhone(found.customerPhone || '');
-        setVehicleType(found.vehicleType || 'Auto');
-      } else {
+    const found = frequentCustomers.find(c => c.customerPlate === uppercasePlate);
+    if (found) {
+      setCustomerMode('FRECUENTE');
+      setCustomerName(found.customerName || '');
+      setPhone(found.customerPhone || '');
+      setVehicleType(found.vehicleType || 'Auto');
+    } else {
+      if (customerMode === 'FRECUENTE') {
         setCustomerName('');
         setPhone('');
       }

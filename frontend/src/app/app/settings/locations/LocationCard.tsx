@@ -11,7 +11,7 @@ export default function LocationCard({ location }: { location: any }) {
   const [isConnected, setIsConnected] = useState(location.whatsappConnected);
 
   // NOTA: Para producción, esta URL debe venir de las variables de entorno
-  const WHATSAPP_API = process.env.NEXT_PUBLIC_WHATSAPP_URL || 'http://localhost:3001';
+  const WHATSAPP_API = process.env.NEXT_PUBLIC_WHATSAPP_URL || 'https://sistema-carwash.onrender.com';
 
   useEffect(() => {
     const checkRealStatus = async () => {

@@ -6,7 +6,7 @@ import { revalidatePath } from 'next/cache';
 import { auth } from '@/auth';
 
 async function sendWhatsAppMessage(locationId: string, phone: string, message: string) {
-  const WHATSAPP_API = process.env.NEXT_PUBLIC_WHATSAPP_URL;
+  const WHATSAPP_API = process.env.NEXT_PUBLIC_WHATSAPP_URL || 'https://sistema-carwash.onrender.com';
   if (!WHATSAPP_API || !phone) return;
   try {
     await fetch(`${WHATSAPP_API}/send/${locationId}`, {
