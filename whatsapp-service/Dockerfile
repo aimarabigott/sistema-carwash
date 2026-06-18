@@ -18,5 +18,8 @@ COPY . .
 # Exponer el puerto
 EXPOSE 3001
 
-# Iniciar el servicio (como no estamos compilando a JS por tiempo, usamos ts-node)
+# Compilar TS a JS
+RUN npm run build
+
+# Iniciar el servicio compilado
 CMD ["npm", "run", "start"]
