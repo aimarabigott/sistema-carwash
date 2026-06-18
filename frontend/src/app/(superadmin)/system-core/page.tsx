@@ -3,7 +3,8 @@ import prisma from "@/lib/prisma";
 import Link from "next/link";
 import { checkSuperAdmin, updateBusinessSubscription, deleteBusiness } from "@/app/actions/superadmin";
 import { redirect } from "next/navigation";
-import { Trash2, Edit3, Eye, Calendar } from "lucide-react";
+import { Edit3, Eye, Calendar } from "lucide-react";
+import DeleteForm from "./DeleteForm";
 
 export const dynamic = 'force-dynamic';
 
@@ -90,15 +91,7 @@ export default async function SystemCorePage() {
                       >
                         <Eye size={14} /> Inspeccionar
                       </Link>
-                      <form action={deleteBusiness} onSubmit={(e) => { if(!confirm('⚠️ PELIGRO: ¿Estás seguro de borrar toda la franquicia y todos sus datos permanentemente?')) e.preventDefault(); }}>
-                        <input type="hidden" name="businessId" value={b.id} />
-                        <button 
-                          type="submit" 
-                          className="flex items-center gap-1 text-xs bg-red-900/30 hover:bg-red-600 text-red-400 hover:text-white px-3 py-2 rounded-lg font-bold transition-all"
-                        >
-                          <Trash2 size={14} /> Destruir
-                        </button>
-                      </form>
+                      <DeleteForm businessId={b.id} />
                     </div>
                   </td>
                 </tr>
